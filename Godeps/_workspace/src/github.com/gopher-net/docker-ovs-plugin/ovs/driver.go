@@ -15,7 +15,7 @@ import (
 const (
 	defaultRoute     = "0.0.0.0/0"
 	ovsPortPrefix    = "ovs-veth0-"
-	bridgePrefix     = "ovsbr-"
+	defaultbridge     = "br-int"
 	containerEthName = "eth"
 
 	mtuOption           = "net.gopher.ovs.bridge.mtu"
@@ -252,7 +252,7 @@ func getBridgeMTU(r *dknet.CreateNetworkRequest) (int, error) {
 }
 
 func getBridgeName(r *dknet.CreateNetworkRequest) (string, error) {
-	bridgeName := bridgePrefix + truncateID(r.NetworkID)
+	bridgeName := defaultbridge
 	if r.Options != nil {
 		if name, ok := r.Options[bridgeNameOption].(string); ok {
 			bridgeName = name
