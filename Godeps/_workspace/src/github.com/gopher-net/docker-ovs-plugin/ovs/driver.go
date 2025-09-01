@@ -14,7 +14,7 @@ import (
 
 const (
 	defaultRoute     = "0.0.0.0/0"
-	ovsPortPrefix    = "ovs-veth0-"
+	ovsPortPrefix    = "ovs-"
 	defaultbridge     = "br-int"
 	containerEthName = "eth"
 
@@ -101,6 +101,13 @@ func (d *Driver) CreateNetwork(r *dknet.CreateNetworkRequest) error {
 	}
 	return nil
 }
+// containerVethName 截取容器 ID 前5位，用作 veth 名称后缀
+func endpointVethName(containerID string) string {
+    if len(containerID) < 10 {
+        return containerID
+    }
+    return containerID[:10]
+}
 
 func (d *Driver) DeleteNetwork(r *dknet.DeleteNetworkRequest) error {
 	log.Debugf("Delete network request: %+v", r)
@@ -171,7 +178,8 @@ func (d *Driver) Leave(r *dknet.LeaveRequest) error {
 	if err := netlink.LinkDel(localVethPair); err != nil {
 		log.Errorf("unable to delete veth on leave: %s", err)
 	}
-	portID := fmt.Sprintf(ovsPortPrefix + truncateID(r.EndpointID))
+	portID := fmt.Sprintf(ovsPortPrefix + endpointVethName(r.EndpointID))
+	//portID := fmt.Sprintf(ovsPortPrefix + truncateID(r.EndpointID))
 	bridgeName := d.networks[r.NetworkID].BridgeName
 	err := d.ovsdber.deletePort(bridgeName, portID)
 	if err != nil {
